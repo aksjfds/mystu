@@ -1,12 +1,15 @@
 use glacier::prelude::*;
-use mystu::{post::get_post::GetPost, prelude::*};
+use mystu::prelude::*;
+
+use mystu::notfound::NotFound;
+use mystu::post::get_post::GetPost;
 
 async fn router(req: HyperRequest) -> Result<HyperResponse> {
     let req = Request::new(req);
 
     let res = match req.uri().path() {
         "/post/get_post" => req.async_map(GetPost).await,
-        _ => todo!(),
+        _ => req.map(NotFound),
     }?;
 
     res.try_into().map_err(|_e| Error::NoCare)

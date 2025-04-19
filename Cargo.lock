@@ -361,6 +361,7 @@ checksum = "07e28edb80900c19c28f1072f2e8aeca7fa06b23cd4169cefe1af5aa3260783f"
 [[package]]
 name = "glacier"
 version = "0.1.0"
+source = "git+https://github.com/aksjfds/glacier.git?branch=hyper#aaedbcf3fb7dbc00f744719b159f41e1e4378375"
 dependencies = [
  "http-body-util",
  "hyper",
