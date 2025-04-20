@@ -18,6 +18,7 @@ use crate::jwt::LoginPayload;
 pub struct CreatePost;
 
 impl HandleReq<Error> for CreatePost {
+    #[tracing::instrument(name = "create_post", level = "debug", skip(self, req))]
     async fn async_handle(self, mut req: Request) -> Result<Response> {
         let payload: LoginPayload = req
             .headers()

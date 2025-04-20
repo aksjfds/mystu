@@ -5,11 +5,11 @@ use mystu::post::{CreatePost, GetPost};
 use mystu::user::{Login, SignUp};
 
 ///
-/// 
-/// 
-/// 
-/// 
-/// 
+///
+///
+///
+///
+///
 
 async fn router(req: HyperRequest) -> Result<HyperResponse> {
     let req = Request::new(req);
@@ -31,7 +31,9 @@ async fn router(req: HyperRequest) -> Result<HyperResponse> {
         },
     };
 
-    res.try_into().map_err(|_e| Error::NoCare)
+    res.header(ACCESS_CONTROL_ALLOW_ORIGIN, "aksjfds.github.io")
+        .try_into()
+        .map_err(|_e| Error::NoCare)
 }
 
 #[tokio::main]

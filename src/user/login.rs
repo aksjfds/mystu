@@ -26,6 +26,7 @@ use serde::{Deserialize, Serialize};
 pub struct Login;
 
 impl HandleReq<Error> for Login {
+    #[tracing::instrument(name = "login", level = "debug", skip(self, req))]
     async fn async_handle(self, mut req: Request) -> Result<Response> {
         // 获取邮箱密码
         let user = req.body::<User>().await.ok_or(Error::NoCare)?;
