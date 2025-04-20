@@ -31,7 +31,10 @@ async fn router(req: HyperRequest) -> Result<HyperResponse> {
         },
     };
 
-    res.header(ACCESS_CONTROL_ALLOW_ORIGIN, "aksjfds.github.io")
+    const CORS: &str = "https://aksjfds.github.io";
+
+    res.header(ACCESS_CONTROL_ALLOW_ORIGIN, CORS)
+        .header(ACCESS_CONTROL_ALLOW_HEADERS, "Content-Type, Authorization")
         .try_into()
         .map_err(|_e| Error::NoCare)
 }
