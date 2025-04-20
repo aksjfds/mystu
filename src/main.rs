@@ -1,16 +1,35 @@
 use glacier::prelude::*;
 use mystu::prelude::*;
 
-use mystu::notfound::NotFound;
-use mystu::post::get_post::GetPost;
+use mystu::post::{CreatePost, GetPost};
+use mystu::user::{Login, SignUp};
+
+///
+/// 
+/// 
+/// 
+/// 
+/// 
 
 async fn router(req: HyperRequest) -> Result<HyperResponse> {
     let req = Request::new(req);
 
     let res = match req.uri().path() {
         "/post/get_post" => req.async_map(GetPost).await,
-        _ => req.map(NotFound),
-    }?;
+        "/post/create_post" => req.async_map(CreatePost).await,
+        "/user/login" => req.async_map(Login).await,
+        "/user/signup" => req.async_map(SignUp).await,
+        _ => Ok(Response::new().status(404)),
+    };
+
+    let res = match res {
+        Ok(res) => res,
+        Err(e) => match e {
+            // 错误处理
+            Error::NoCare => Response::new().status(404),
+            Error::Status(code) => Response::new().status(code),
+        },
+    };
 
     res.try_into().map_err(|_e| Error::NoCare)
 }
@@ -19,13 +38,13 @@ async fn router(req: HyperRequest) -> Result<HyperResponse> {
 async fn main() -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync>> {
     use std::net::SocketAddr;
 
-    mystu::database::Postgres::init();
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .with_target(false)
+        .init();
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 443));
-    glacier::client::Glacier::bind(addr)
-        .serve(router)
-        .await
-        .unwrap();
+    glacier::Glacier::bind(addr).serve(router).await.unwrap();
 
     Ok(())
 }

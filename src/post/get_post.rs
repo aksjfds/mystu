@@ -1,10 +1,19 @@
 use crate::{database::Postgres, prelude::*};
-use glacier::{prelude::*, resultext::AsyncMapExt};
+use glacier::prelude::*;
 use serde::{Deserialize, Serialize};
+
+
+///
+/// 
+/// 
+/// 
+/// 
+/// 
 
 pub struct GetPost;
 
 impl HandleReq<Error> for GetPost {
+    #[tracing::instrument(name = "get_post", level = "debug", skip(self, req))]
     async fn async_handle(self, req: Request) -> Result<Response> {
         let res = req
             .param::<GetPostParam>()
@@ -30,10 +39,11 @@ pub async fn get_post(param: GetPostParam) -> Vec<Post> {
         .unwrap()
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct GetPostParam {
-    pub last_id: i32,
-    pub limit: i16,
+    last_id: i32,
+    #[allow(dead_code)]
+    limit: i16,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]

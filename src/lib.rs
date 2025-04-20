@@ -1,5 +1,7 @@
 pub mod post;
+pub mod user;
 pub mod error;
 pub mod prelude;
 pub mod database;
 pub mod notfound;
+pub mod jwt;
