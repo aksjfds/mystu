@@ -12,6 +12,16 @@ use mystu::user::{Login, SignUp};
 ///
 
 async fn router(req: HyperRequest) -> Result<HyperResponse> {
+    const CORS: &str = "https://aksjfds.github.io";
+
+    if req.method() == "OPTIONS" {
+        return Response::Ok()
+            .header(ACCESS_CONTROL_ALLOW_ORIGIN, CORS)
+            .header(ACCESS_CONTROL_ALLOW_HEADERS, "Content-Type, Authorization")
+            .try_into()
+            .map_err(|_e| Error::NoCare);
+    }
+
     let req = Request::new(req);
 
     let res = match req.uri().path() {
@@ -30,8 +40,6 @@ async fn router(req: HyperRequest) -> Result<HyperResponse> {
             Error::Status(code) => Response::new().status(code),
         },
     };
-
-    const CORS: &str = "https://aksjfds.github.io";
 
     res.header(ACCESS_CONTROL_ALLOW_ORIGIN, CORS)
         .header(ACCESS_CONTROL_ALLOW_HEADERS, "Content-Type, Authorization")
