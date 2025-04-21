@@ -1,6 +1,7 @@
 use glacier::prelude::*;
 use mystu::prelude::*;
 
+use mystu::filter::*;
 use mystu::post::{CreatePost, GetPost};
 use mystu::user::{Login, SignUp};
 
@@ -11,9 +12,20 @@ use mystu::user::{Login, SignUp};
 ///
 ///
 
-async fn router(req: HyperRequest) -> Result<HyperResponse> {
-    const CORS: &str = "https://aksjfds.github.io";
+const CORS: &str = "https://aksjfds.github.io";
+async fn main_router(req: Request) -> Result<Response> {
+    let res = match req.uri().path() {
+        "/post/get_post" => req.filter(Get)?.async_map(GetPost).await,
+        "/post/create_post" => req.filter(Post)?.async_map(CreatePost).await,
+        "/user/login" => req.filter(Post)?.async_map(Login).await,
+        "/user/signup" => req.filter(Post)?.async_map(SignUp).await,
+        _ => Ok(Response::new().status(404)),
+    };
 
+    res
+}
+
+async fn router(req: HyperRequest) -> Result<HyperResponse> {
     if req.method() == "OPTIONS" {
         return Response::Ok()
             .header(ACCESS_CONTROL_ALLOW_ORIGIN, CORS)
@@ -23,14 +35,7 @@ async fn router(req: HyperRequest) -> Result<HyperResponse> {
     }
 
     let req = Request::new(req);
-
-    let res = match req.uri().path() {
-        "/post/get_post" => req.async_map(GetPost).await,
-        "/post/create_post" => req.async_map(CreatePost).await,
-        "/user/login" => req.async_map(Login).await,
-        "/user/signup" => req.async_map(SignUp).await,
-        _ => Ok(Response::new().status(404)),
-    };
+    let res = main_router(req).await;
 
     let res = match res {
         Ok(res) => res,

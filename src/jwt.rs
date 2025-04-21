@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 
 pub const REFRESH_DURATION: Duration = Duration::from_secs(7 * 24 * 60 * 60);
 pub const ACCESS_DURATION: Duration = Duration::from_secs(60 * 60);
+pub const SIGN_UP_DURATION: Duration = Duration::from_secs(60 * 5);
 
 pub static mut REFRESH_KEY: LazyLock<String> = LazyLock::new(|| {
     dotenv::dotenv().ok();
@@ -29,6 +30,13 @@ pub static mut ACCESS_KEY: LazyLock<String> = LazyLock::new(|| {
     access_key
 });
 
+pub static mut SIGN_UP_KEY: LazyLock<String> = LazyLock::new(|| {
+    dotenv::dotenv().ok();
+
+    let sign_up_key = std::env::var("SIGN_UP_KEY").expect("SIGN_UP_KEY is not Provided");
+    sign_up_key
+});
+
 pub struct Key;
 impl Key {
     pub fn access_key() -> &'static [u8] {
@@ -37,6 +45,10 @@ impl Key {
 
     pub fn refresh_key() -> &'static [u8] {
         unsafe { (&*REFRESH_KEY).as_bytes() }
+    }
+
+    pub fn sign_up_key() -> &'static [u8] {
+        unsafe { (&*SIGN_UP_KEY).as_bytes() }
     }
 }
 
@@ -95,5 +107,8 @@ pub fn encode<T: Serialize>(
         },
         &EncodingKey::from_secret(key),
     )
-    .map_err(|_e| Error::Status(500))
+    .map_err(|e| {
+        tracing::debug!("Error when encode JWT: {:#?}", e);
+        Error::Status(533)
+    })
 }

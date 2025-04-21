@@ -1,4 +1,9 @@
+mod access;
 mod login;
 mod signup;
-pub use signup::SignUp;
+mod verify_email;
+
+pub(self) use signup::SignUpPayload;
+
 pub use login::Login;
+pub use signup::SignUp;

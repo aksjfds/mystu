@@ -45,8 +45,8 @@ pub struct Redis;
 impl Redis {
     pub fn get_conn() -> crate::prelude::Result<redis::Connection> {
         REDIS_CLIENT.get_connection().map_err(|e| {
-            tracing::debug!("{:#?}", e);
-            crate::error::Error::Status(500)
+            tracing::debug!("Error when get Redis's Connection: {:#?}", e);
+            crate::error::Error::Status(532)
         })
     }
 }
