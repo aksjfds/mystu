@@ -1,8 +1,12 @@
-use crate::{database::Postgres, prelude::*};
+use crate::{
+    database::{Postgres, Redis},
+    prelude::*,
+};
 use glacier::prelude::*;
+use redis::Commands;
 use serde::{Deserialize, Serialize};
 
-use crate::jwt::{self, Key};
+use super::verify_email::is_exists;
 
 ///
 ///
@@ -12,26 +16,38 @@ use crate::jwt::{self, Key};
 ///
 
 /**
-    * 成功返回 1,否则返回-1
+# Error
+    * 邮箱后缀不对 - 701
+    * 已注册 - 702
+    * 验证码错误 - 703
  */
 pub struct SignUp;
 
 impl HandleReq<Error> for SignUp {
     #[tracing::instrument(name = "SignUp", level = "debug", skip(self, req))]
     async fn async_handle(self, mut req: Request) -> Result<Response> {
-        // 验证jwt
-        let payload: SignUpPayload<String> = req
-            .headers()
-            .get(AUTHORIZATION)
-            .map(|token| jwt::decode(token, Key::access_key()))
-            .ok_or_else(|| Error::Status(401))??;
-
         // 获取参数
         let param = req.body::<SignUpParam>().await.ok_or(Error::NoCare)?;
 
+        // 判断后缀 @stu.edu.cn
+        let Some("@stu.edu.cn") = param.email.get(param.email.len() - 11..) else {
+            return Err(Error::Status(701));
+        };
+
+        // 判断是否已注册
+        let false = is_exists(&param.email).await? else {
+            return Err(Error::Status(702));
+        };
+
         // 验证
-        if payload.verify_code != param.verify_code || payload.email != param.email {
-            return Err(Error::Status(401));
+        let email: Option<String> = Redis::get_conn()?.get(param.verify_code)?;
+        match email {
+            Some(email) => {
+                if email != param.email {
+                    return Err(Error::Status(703));
+                }
+            }
+            None => return Err(Error::Status(703)),
         }
 
         // 注册

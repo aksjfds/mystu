@@ -27,7 +27,12 @@ impl HandleReq<Error> for Login {
         let user = req.body::<User>().await.ok_or(Error::NoCare)?;
 
         // 判断是否存在该用户
-        let payload = is_exists(user).await?;
+        let (username, role) = is_exists(&user).await?;
+        let payload = LoginPayload {
+            username,
+            role,
+            email: user.email,
+        };
 
         // 生成长短token,保存在 localStorage
         let refresh_token = jwt::encode(&payload, jwt::Key::refresh_key(), jwt::REFRESH_DURATION)?;
@@ -64,14 +69,19 @@ pub(super) struct Token<T> {
     pub access_token: T,
 }
 
-async fn is_exists(user: User) -> Result<LoginPayload> {
-    const SQL: &str = "SELECT email, username, role FROM users WHERE email = $1 AND active = TRUE AND password = $2";
+async fn is_exists(user: &User) -> Result<(String, i16)> {
+    const SQL: &str =
+        "SELECT username, role FROM users WHERE email = $1 AND active = TRUE AND password = $2";
 
     let payload = sqlx::query_as(SQL)
-        .bind(user.email)
-        .bind(user.password)
+        .bind(&user.email)
+        .bind(&user.password)
         .fetch_optional(Postgres::pool())
-        .await?
+        .await
+        .map_err(|e| {
+            println!("{:#?}", e);
+            e
+        })?
         .ok_or(Error::Status(701));
 
     payload

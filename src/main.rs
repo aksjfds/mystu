@@ -3,7 +3,7 @@ use mystu::prelude::*;
 
 use mystu::filter::*;
 use mystu::post::{CreatePost, GetPost};
-use mystu::user::{Login, SignUp};
+use mystu::user::{Login, SignUp, VerifyEmail};
 
 ///
 ///
@@ -12,13 +12,15 @@ use mystu::user::{Login, SignUp};
 ///
 ///
 
-const CORS: &str = "https://aksjfds.github.io";
+// const CORS: &str = "https://aksjfds.github.io";
+const CORS: &str = "http://localhost:5173";
 async fn main_router(req: Request) -> Result<Response> {
     let res = match req.uri().path() {
         "/post/get_post" => req.filter(Get)?.async_map(GetPost).await,
         "/post/create_post" => req.filter(Post)?.async_map(CreatePost).await,
         "/user/login" => req.filter(Post)?.async_map(Login).await,
-        "/user/signup" => req.filter(Post)?.async_map(SignUp).await,
+        "/user/verify_email" => req.filter(Get)?.async_map(VerifyEmail).await,
+        "/user/sign_up" => req.filter(Post)?.async_map(SignUp).await,
         _ => Ok(Response::new().status(404)),
     };
 
@@ -61,7 +63,8 @@ async fn main() -> std::result::Result<(), Box<dyn std::error::Error + Send + Sy
         .with_target(false)
         .init();
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 443));
+    // let addr = SocketAddr::from(([0, 0, 0, 0], 443));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     glacier::Glacier::bind(addr).serve(router).await.unwrap();
 
     Ok(())

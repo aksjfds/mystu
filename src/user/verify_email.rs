@@ -1,12 +1,11 @@
 use crate::prelude::*;
 use glacier::prelude::*;
 
+use redis::Commands;
 use serde::Deserialize;
 
-use crate::database::Postgres;
-use crate::jwt::{self, Key};
+use crate::database::{Postgres, Redis};
 use crate::tool::{random_code, stu};
-use crate::user::SignUpPayload;
 
 ///
 ///
@@ -30,23 +29,20 @@ impl HandleReq<Error> for VerifyEmail {
 
         // 判断后缀 @stu.edu.cn
         let Some("@stu.edu.cn") = email.email.get(email.email.len() - 11..) else {
-            return Err(Error::Status(401));
+            return Err(Error::Status(701));
         };
 
         // 判断是否已注册
-        let false = is_exists(&email).await? else {
-            return Err(Error::Status(404));
+        let false = is_exists(&email.email).await? else {
+            return Err(Error::Status(702));
         };
 
         // 生成验证码
         let verify_code = random_code();
 
-        // 生成 JWT
-        let payload = SignUpPayload {
-            email: email.email.as_str(),
-            verify_code: verify_code.as_str(),
-        };
-        let jwt = jwt::encode(&payload, Key::sign_up_key(), jwt::SIGN_UP_DURATION)?;
+        // 存入redis 5min
+        let _: () =
+            Redis::get_conn()?.set_ex(verify_code.as_str(), email.email.as_str(), 60 * 5)?;
 
         // 发送stu邮箱
         stu(&email.email, verify_code).map_err(|e| {
@@ -54,7 +50,7 @@ impl HandleReq<Error> for VerifyEmail {
             Error::Status(534)
         })?;
 
-        Ok(jwt.into())
+        Ok(().into())
     }
 }
 
@@ -63,11 +59,11 @@ pub struct Email {
     pub email: String,
 }
 
-async fn is_exists(email: &Email) -> Result<bool> {
+pub async fn is_exists(email: &String) -> Result<bool> {
     const SQL: &str = "SELECT EXISTS (SELECT 1 FROM users WHERE email = $1)";
 
     sqlx::query_scalar(SQL)
-        .bind(&email.email)
+        .bind(email)
         .fetch_one(Postgres::pool())
         .await
         .map_err(Into::into)
