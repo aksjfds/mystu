@@ -28,6 +28,9 @@ impl HandleReq<Error> for VerifyEmail {
         let email = req.param::<Email>().ok_or(Error::NoCare)?;
 
         // 判断后缀 @stu.edu.cn
+        if email.email.len() < 15 {
+            return Err(Error::Status(401));
+        }
         let Some("@stu.edu.cn") = email.email.get(email.email.len() - 11..) else {
             return Err(Error::Status(701));
         };

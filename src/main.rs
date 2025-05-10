@@ -12,8 +12,8 @@ use mystu::user::{Login, SignUp, VerifyEmail};
 ///
 ///
 
-// const CORS: &str = "https://aksjfds.github.io";
-const CORS: &str = "http://localhost:5173";
+const CORS: &str = "https://aksjfds.github.io";
+// const CORS: &str = "http://localhost:3000";
 async fn main_router(req: Request) -> Result<Response> {
     let res = match req.uri().path() {
         "/post/get_post" => req.filter(Get)?.async_map(GetPost).await,
