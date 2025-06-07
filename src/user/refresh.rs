@@ -17,7 +17,7 @@ use super::login::Token;
 
 /**
 # Error
-    * 未携带长token - 404
+    * 未携带长token - 401
     * 长token验证失败 - 401
     * 长token过期 - 701
 
@@ -28,7 +28,7 @@ impl HandleReq<Error> for Refresh {
     #[tracing::instrument(name = "Refresh", level = "debug", skip(self, req))]
     async fn async_handle(self, req: Request) -> Result<Response> {
         // 获取长token
-        let refresh_token = req.headers().get(AUTHORIZATION).ok_or(Error::NoCare)?;
+        let refresh_token = req.headers().get(AUTHORIZATION).ok_or(Error::Status(401))?;
 
         // 验证长token
         let payload = jwt::decode::<LoginPayload>(refresh_token, Key::refresh_key())?;
@@ -36,7 +36,7 @@ impl HandleReq<Error> for Refresh {
         // 生成键名，在redis中判断是否存在
         let refresh_token = std::str::from_utf8(refresh_token.as_ref()).map_err(|e| {
             tracing::debug!("{:#?}", e);
-            Error::NoCare
+            Error::Status(401)
         })?;
         let len = refresh_token.len();
         let status = match len > 16 {
@@ -50,6 +50,7 @@ impl HandleReq<Error> for Refresh {
         // 存在的话，生成长短token
         let refresh_token = jwt::encode(&payload, Key::refresh_key(), jwt::REFRESH_DURATION)?;
         let access_token = jwt::encode(&payload, Key::access_key(), jwt::ACCESS_DURATION)?;
+        
         let len = refresh_token.len();
         let status = match len > 16 {
             true => &refresh_token[len - 16..],

@@ -7,3 +7,4 @@ pub mod notfound;
 pub mod jwt;
 pub mod tool;
 pub mod filter;
+pub mod comment;

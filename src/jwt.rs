@@ -17,6 +17,7 @@ pub const ACCESS_DURATION: Duration = Duration::from_secs(60 * 60);
 pub const SIGN_UP_DURATION: Duration = Duration::from_secs(60 * 5);
 
 pub static mut REFRESH_KEY: LazyLock<String> = LazyLock::new(|| {
+    #[cfg(feature = "dotenv")]
     dotenv::dotenv().ok();
 
     let refresh_key = std::env::var("REFRESH_KEY").expect("REFRESH_KEY is not Provided");
@@ -24,6 +25,7 @@ pub static mut REFRESH_KEY: LazyLock<String> = LazyLock::new(|| {
 });
 
 pub static mut ACCESS_KEY: LazyLock<String> = LazyLock::new(|| {
+    #[cfg(feature = "dotenv")]
     dotenv::dotenv().ok();
 
     let access_key = std::env::var("ACCESS_KEY").expect("ACCESS_KEY is not Provided");
@@ -31,6 +33,7 @@ pub static mut ACCESS_KEY: LazyLock<String> = LazyLock::new(|| {
 });
 
 pub static mut SIGN_UP_KEY: LazyLock<String> = LazyLock::new(|| {
+    #[cfg(feature = "dotenv")]
     dotenv::dotenv().ok();
 
     let sign_up_key = std::env::var("SIGN_UP_KEY").expect("SIGN_UP_KEY is not Provided");

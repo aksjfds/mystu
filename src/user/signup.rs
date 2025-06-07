@@ -40,10 +40,10 @@ impl HandleReq<Error> for SignUp {
         };
 
         // 验证
-        let email: Option<String> = Redis::get_conn()?.get(param.verify_code)?;
-        match email {
-            Some(email) => {
-                if email != param.email {
+        let verify_code: Option<String> = Redis::get_conn()?.get(param.email.as_str())?;
+        match verify_code {
+            Some(verify_code) => {
+                if verify_code != param.verify_code {
                     return Err(Error::Status(703));
                 }
             }

@@ -15,6 +15,7 @@ pub fn random_code() -> String {
 
 /* --------------------------------- // 邮件发送 -------------------------------- */
 const EMAIL_PASSWORD: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
+    #[cfg(feature = "dotenv")]
     dotenv::dotenv().ok();
 
     let email_password = std::env::var("EMAIL_PASSWORD").expect("EMAIL_PASSWORD is not Provided");

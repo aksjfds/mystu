@@ -26,7 +26,7 @@ impl HandleReq<Error> for GetPost {
 }
 
 pub async fn get_post(param: GetPostParam) -> Result<Vec<Post>> {
-    const SQL: &str = "SELECT id, title, author, content, \
+    const SQL: &str = "SELECT id, author, content, \
         to_char(time, 'YYYY-MM-DD HH24:MI') AS time \
         FROM posts WHERE id > $1 LIMIT $2";
 
@@ -50,19 +50,7 @@ pub struct GetPostParam {
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 pub struct Post {
     pub id: i32,
-    pub title: String,
     pub author: String,
     pub time: String,
     pub content: String,
-}
-
-#[tokio::test]
-async fn test() {
-    let param = GetPostParam {
-        last_id: 0,
-        limit: 5,
-    };
-
-    let posts = get_post(param).await;
-    println!("{:#?}", posts);
 }

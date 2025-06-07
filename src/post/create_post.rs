@@ -16,7 +16,11 @@ use crate::jwt::LoginPayload;
 ///
 
 /**
-    * 成功返回id,失败返回-1
+# Error
+    * 未携带token - 401
+    * token异常 - 401
+    * 成功 - 返回 id
+    * 失败 - 返回-1
  */
 pub struct CreatePost;
 
@@ -38,7 +42,7 @@ impl HandleReq<Error> for CreatePost {
             })
             .async_map(sql_create_post)
             .await
-            .ok_or(Error::NoCare)?
+            .ok_or(Error::Status(401))?
             .map(Into::into);
 
         res
@@ -47,14 +51,11 @@ impl HandleReq<Error> for CreatePost {
 
 async fn sql_create_post(post: CreatePostParam) -> Result<i32> {
     const SQL: &str = "WITH ins AS ( \
-            INSERT INTO posts(title, author, content) VALUES ($1, $2, $3) \
-            ON CONFLICT (title) DO NOTHING \
-            RETURNING id \
+            INSERT INTO posts(author, content) VALUES ($1, $2) RETURNING id \
         )\
         SELECT COALESCE((SELECT id FROM ins), -1)";
 
     let id = sqlx::query_scalar(SQL)
-        .bind(post.title)
         .bind(post.author)
         .bind(post.content)
         .fetch_one(Postgres::pool())
@@ -65,7 +66,6 @@ async fn sql_create_post(post: CreatePostParam) -> Result<i32> {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreatePostParam {
-    pub title: String,
     pub author: String,
     pub content: String,
 }

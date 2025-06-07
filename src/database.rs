@@ -9,6 +9,7 @@ use std::sync::LazyLock;
 ///
 
 pub static mut POOL: LazyLock<sqlx::Pool<sqlx::Postgres>> = LazyLock::new(|| {
+    #[cfg(feature = "dotenv")]
     dotenv::dotenv().ok();
 
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL is not Provided");
@@ -34,6 +35,7 @@ impl Postgres {
 ///
 
 pub static REDIS_CLIENT: LazyLock<redis::Client> = LazyLock::new(|| {
+    #[cfg(feature = "dotenv")]
     dotenv::dotenv().ok();
 
     let redis_url = std::env::var("REDIS_URL").expect("DATABASE_URL is not Provided");

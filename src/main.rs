@@ -1,9 +1,11 @@
 use glacier::prelude::*;
+use mystu::comment::CreateComment;
+use mystu::comment::GetComment;
 use mystu::prelude::*;
 
 use mystu::filter::*;
 use mystu::post::{CreatePost, GetPost};
-use mystu::user::{Login, SignUp, VerifyEmail};
+use mystu::user::{Login, Refresh, SignUp, VerifyEmail};
 
 ///
 ///
@@ -12,15 +14,19 @@ use mystu::user::{Login, SignUp, VerifyEmail};
 ///
 ///
 
-const CORS: &str = "https://aksjfds.github.io";
+// const CORS: &str = "https://aksjfds.github.io";
 // const CORS: &str = "http://localhost:3000";
+const CORS: &str = "https://mystu.org";
 async fn main_router(req: Request) -> Result<Response> {
     let res = match req.uri().path() {
+        "/comment/get_comment" => req.filter(Get)?.async_map(GetComment).await,
+        "/comment/create_comment" => req.filter(Post)?.async_map(CreateComment).await,
         "/post/get_post" => req.filter(Get)?.async_map(GetPost).await,
         "/post/create_post" => req.filter(Post)?.async_map(CreatePost).await,
         "/user/login" => req.filter(Post)?.async_map(Login).await,
         "/user/verify_email" => req.filter(Get)?.async_map(VerifyEmail).await,
         "/user/sign_up" => req.filter(Post)?.async_map(SignUp).await,
+        "/user/refresh" => req.filter(Get)?.async_map(Refresh).await,
         _ => Ok(Response::new().status(404)),
     };
 
@@ -64,7 +70,7 @@ async fn main() -> std::result::Result<(), Box<dyn std::error::Error + Send + Sy
         .init();
 
     // let addr = SocketAddr::from(([0, 0, 0, 0], 443));
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3001));
     glacier::Glacier::bind(addr).serve(router).await.unwrap();
 
     Ok(())

@@ -18,6 +18,7 @@ use crate::tool::{random_code, stu};
 # Error
     * 邮箱后缀不对 - 701
     * 已注册 - 702
+    * 已发过验证码, 并且未过期 - 703
     * 发送邮箱错误 - 534
  */
 pub struct VerifyEmail;
@@ -43,9 +44,14 @@ impl HandleReq<Error> for VerifyEmail {
         // 生成验证码
         let verify_code = random_code();
 
+        // 先判断Redis是否存在验证码
+        if let true = Redis::get_conn()?.exists(email.email.as_str())? {
+            return Err(Error::Status(703));
+        }
+
         // 存入redis 5min
         let _: () =
-            Redis::get_conn()?.set_ex(verify_code.as_str(), email.email.as_str(), 60 * 5)?;
+            Redis::get_conn()?.set_ex(email.email.as_str(), verify_code.as_str(), 60 * 5)?;
 
         // 发送stu邮箱
         stu(&email.email, verify_code).map_err(|e| {

@@ -7,3 +7,4 @@ mod refresh;
 pub use login::Login;
 pub use signup::SignUp;
 pub use verify_email::VerifyEmail;
+pub use refresh::Refresh;
